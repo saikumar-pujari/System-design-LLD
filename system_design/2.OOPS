@@ -1,0 +1,559 @@
+# Object-Oriented Programming (OOPS)
+
+## History of Programming Languages
+    1. **Machine Language (0/1)** - Direct binary instructions
+    - Prone to errors
+    - Not scalable
+    - Difficult to maintain
+
+    2. **Assembly Language** - Symbolic representation (e.g., `mov A,61H`)
+    - Still low-level
+    - Hardware dependent
+
+    3. **Procedural Languages** - Functions and sequences
+    - Better structure
+    - Still lacks real-world modeling
+
+    4. **OOPS** - Object-Oriented Programming
+    - Real-world entity modeling
+    - Data security through encapsulation
+    - Highly scalable and reusable
+
+---
+
+## Core OOPS Concepts
+
+### 1. Abstraction
+**Definition:** Hide complex implementation details, expose only essential behavior.
+
+**Example - Without Abstraction (Procedural):**
+```cpp
+// Procedural approach - no clear interface
+float calculateBankBalance(int accountId) {
+  float balance = 5000;
+  float interestRate = 0.05;
+  float calculation = balance * interestRate;
+  std::cout << calculation << std::endl;
+  return balance + calculation;
+}
+```
+
+**Example - With Abstraction (OOPS):**
+```cpp
+// OOPS approach using class abstraction
+class BankAccount {
+private:
+  float balance;
+  
+public:
+  BankAccount(float bal) : balance(bal) {}
+  
+  // User only needs to know about this behavior
+  float getBalance() {
+    return balance;
+  }
+  
+  // Internal calculation hidden from user
+  float calculateInterest() {
+    return balance * 0.05;
+  }
+};
+
+int main() {
+  BankAccount account(5000);
+  std::cout << account.getBalance() << std::endl; // Only need to use this
+  return 0;
+}
+```
+
+---
+
+### 2. Encapsulation
+**Definition:** Bundle data with methods and control access using access modifiers (getter/setter).
+
+**Example - Without Encapsulation:**
+```cpp
+// Anyone can change the balance directly - unsafe!
+class UnsafeAccount {
+public:
+  float balance = 5000;
+};
+
+int main() {
+  UnsafeAccount account;
+  account.balance = -1000; // Invalid! No validation
+  return 0;
+}
+```
+
+**Example - With Encapsulation:**
+```cpp
+// Proper encapsulation with getter/setter
+class SecureAccount {
+private:
+  float balance = 5000; // Private member variable
+  
+public:
+  // Getter - controlled read access
+  float getBalance() const {
+    return balance;
+  }
+  
+  // Setter - controlled write access with validation
+  void setBalance(float amount) {
+    if (amount < 0) {
+      std::cout << "Invalid! Balance cannot be negative" << std::endl;
+      return;
+    }
+    balance = amount;
+  }
+  
+  void deposit(float amount) {
+    setBalance(balance + amount);
+  }
+};
+
+int main() {
+  SecureAccount account;
+  std::cout << account.getBalance() << std::endl; // 5000
+  account.setBalance(-1000); // Rejected - "Invalid! Balance cannot be negative"
+  account.deposit(500); // 5500 - Safe operation
+  std::cout << account.getBalance() << std::endl; // 5500
+  return 0;
+}
+```
+
+---
+
+### 3. Inheritance
+**Definition:** Mechanism to acquire properties and methods from a parent class. Promotes code reusability.
+
+**Types of Inheritance:**
+1. **Single Inheritance** - Child inherits from one parent
+2. **Multi-level Inheritance** - Grandparent → Parent → Child
+3. **Multiple Inheritance** - Child inherits from multiple parents
+4. **Hierarchical Inheritance** - Multiple children inherit from one parent
+5. **Hybrid Inheritance** - Combination of multiple types
+
+**Example - Single Inheritance:**
+```cpp
+// Parent class
+class Animal {
+protected:
+  std::string name;
+  
+public:
+  Animal(std::string n) : name(n) {}
+  
+  void eat() {
+    std::cout << name << " is eating" << std::endl;
+  }
+};
+
+// Child class inherits from Animal
+class Dog : public Animal {
+public:
+  Dog(std::string n) : Animal(n) {}
+  
+  void bark() {
+    std::cout << name << " says: Woof! Woof!" << std::endl;
+  }
+};
+
+int main() {
+  Dog dog("Buddy");
+  dog.eat();   // Inherited method
+  dog.bark();  // Own method
+  return 0;
+}
+// Output:
+// Buddy is eating
+// Buddy says: Woof! Woof!
+```
+
+**Example - Multi-level Inheritance:**
+```cpp
+class Vehicle {
+public:
+  void start() {
+    std::cout << "Vehicle started" << std::endl;
+  }
+};
+
+class Car : public Vehicle {
+public:
+  void openDoor() {
+    std::cout << "Door opened" << std::endl;
+  }
+};
+
+class SportsCar : public Car {
+public:
+  void accelerate() {
+    std::cout << "Accelerating at 200 km/h" << std::endl;
+  }
+};
+
+int main() {
+  SportsCar car;
+  car.start();       // From Vehicle
+  car.openDoor();    // From Car
+  car.accelerate();  // From SportsCar
+  return 0;
+}
+```
+
+**Example - Hierarchical Inheritance:**
+```cpp
+class Shape {
+public:
+  virtual void draw() {
+    std::cout << "Drawing shape" << std::endl;
+  }
+};
+
+class Circle : public Shape {
+public:
+  void draw() override {
+    std::cout << "Drawing circle" << std::endl;
+  }
+};
+
+class Rectangle : public Shape {
+public:
+  void draw() override {
+    std::cout << "Drawing rectangle" << std::endl;
+  }
+};
+
+int main() {
+  Circle c;
+  Rectangle r;
+  c.draw();  // Drawing circle
+  r.draw();  // Drawing rectangle
+  return 0;
+}
+```
+
+---
+
+### 4. Polymorphism
+**Definition:** "Many forms" - Ability to use objects of different types through the same interface.
+
+**Two Types:**
+
+#### A. Compile-time Polymorphism (Static Binding)
+
+**Method Overloading:**
+```cpp
+class Calculator {
+public:
+  // Overloaded add methods
+  int add(int a, int b) {
+    return a + b;
+  }
+  
+  double add(double a, double b) {
+    return a + b;
+  }
+  
+  int add(int a, int b, int c) {
+    return a + b + c;
+  }
+};
+
+int main() {
+  Calculator calc;
+  std::cout << calc.add(5, 10) << std::endl;           // 15
+  std::cout << calc.add(5.5, 10.5) << std::endl;       // 16
+  std::cout << calc.add(5, 10, 15) << std::endl;       // 30
+  return 0;
+}
+```
+
+**Operator Overloading:**
+```cpp
+class Vector {
+public:
+  int x, y;
+  
+  Vector(int a = 0, int b = 0) : x(a), y(b) {}
+  
+  // Overload + operator
+  Vector operator+(const Vector& v) {
+    return Vector(x + v.x, y + v.y);
+  }
+  
+  void display() {
+    std::cout << "(" << x << ", " << y << ")" << std::endl;
+  }
+};
+
+int main() {
+  Vector v1(3, 4);
+  Vector v2(1, 2);
+  Vector v3 = v1 + v2;
+  v3.display();  // (4, 6)
+  return 0;
+}
+```
+
+#### B. Runtime Polymorphism (Dynamic Binding)
+
+**Function Overriding with Virtual Functions:**
+```cpp
+class Animal {
+public:
+  virtual void makeSound() {
+    std::cout << "Generic animal sound" << std::endl;
+  }
+  
+  virtual ~Animal() {}  // Virtual destructor
+};
+
+class Dog : public Animal {
+public:
+  void makeSound() override {
+    std::cout << "Woof! Woof!" << std::endl;
+  }
+};
+
+class Cat : public Animal {
+public:
+  void makeSound() override {
+    std::cout << "Meow! Meow!" << std::endl;
+  }
+};
+
+int main() {
+  Animal* animal1 = new Dog();
+  Animal* animal2 = new Cat();
+  
+  animal1->makeSound();  // Woof! Woof!
+  animal2->makeSound();  // Meow! Meow!
+  
+  delete animal1;
+  delete animal2;
+  return 0;
+}
+```
+
+---
+
+### 5. Composition & Aggregation
+**Definition:** Building complex objects from simpler objects.
+
+**Composition (Strong "has-a" relationship):**
+```cpp
+class Engine {
+public:
+  void start() {
+    std::cout << "Engine started" << std::endl;
+  }
+};
+
+class Car {
+private:
+  Engine engine;  // Car owns Engine - strong relationship
+  
+public:
+  void startCar() {
+    engine.start();
+    std::cout << "Car is ready to drive" << std::endl;
+  }
+};
+```
+
+**Aggregation (Weak "has-a" relationship):**
+```cpp
+class Department {
+public:
+  std::string name;
+};
+
+class Employee {
+private:
+  std::string name;
+  Department* dept;  // Employee has reference to Department
+  
+public:
+  Employee(std::string n, Department* d) : name(n), dept(d) {}
+  
+  void displayInfo() {
+    std::cout << name << " works in " << dept->name << std::endl;
+  }
+};
+```
+
+---
+
+### 6. Access Modifiers
+**Definition:** Control visibility and accessibility of class members.
+
+```cpp
+class BankAccount {
+private:
+  // Only accessible within this class
+  float accountBalance = 0;
+  
+protected:
+  // Accessible in this class and derived classes
+  void logTransaction(std::string msg) {
+    std::cout << "[LOG] " << msg << std::endl;
+  }
+  
+public:
+  // Accessible from anywhere
+  void deposit(float amount) {
+    accountBalance += amount;
+    logTransaction("Deposit successful");
+  }
+  
+  float getBalance() const {
+    return accountBalance;
+  }
+};
+
+class CheckingAccount : public BankAccount {
+public:
+  void monthlyFeeCharge() {
+    logTransaction("Monthly fee charged");  // Can access protected
+    // accountBalance = 0;  // ERROR: Cannot access private
+  }
+};
+```
+
+---
+
+### 7. Abstract Classes & Interfaces
+**Definition:** Classes that cannot be instantiated; enforce derived classes to implement specific methods.
+
+```cpp
+// Abstract class with pure virtual functions
+class Shape {
+public:
+  virtual void draw() = 0;  // Pure virtual - must be overridden
+  virtual double getArea() = 0;
+  virtual ~Shape() {}
+};
+
+class Circle : public Shape {
+private:
+  double radius;
+  
+public:
+  Circle(double r) : radius(r) {}
+  
+  void draw() override {
+    std::cout << "Drawing circle" << std::endl;
+  }
+  
+  double getArea() override {
+    return 3.14 * radius * radius;
+  }
+};
+
+class Rectangle : public Shape {
+private:
+  double length, width;
+  
+public:
+  Rectangle(double l, double w) : length(l), width(w) {}
+  
+  void draw() override {
+    std::cout << "Drawing rectangle" << std::endl;
+  }
+  
+  double getArea() override {
+    return length * width;
+  }
+};
+
+int main() {
+  // Shape s;  // ERROR: Cannot instantiate abstract class
+  
+  Circle c(5);
+  Rectangle r(4, 6);
+  
+  c.draw();
+  std::cout << "Circle area: " << c.getArea() << std::endl;
+  
+  r.draw();
+  std::cout << "Rectangle area: " << r.getArea() << std::endl;
+  
+  return 0;
+}
+```
+
+---
+
+## Complete OOPS Principles Summary
+
+| Principle | Purpose | Example |
+|-----------|---------|---------|
+| **Encapsulation** | Data hiding and controlled access | Private variables with getters/setters |
+| **Abstraction** | Hide complexity, show only needed details | Virtual functions, interfaces |
+| **Inheritance** | Reuse code through parent-child relationships | Dog inherits from Animal |
+| **Polymorphism** | Multiple forms through same interface | Method overriding, operator overloading |
+
+---
+
+## Real-World OOPS Design Example
+
+```cpp
+// Vehicle Management System
+class Vehicle {
+protected:
+  std::string registration;
+  
+public:
+  Vehicle(std::string reg) : registration(reg) {}
+  virtual void start() = 0;
+  virtual ~Vehicle() {}
+};
+
+class Car : public Vehicle {
+private:
+  int doors;
+  
+public:
+  Car(std::string reg, int d) : Vehicle(reg), doors(d) {}
+  
+  void start() override {
+    std::cout << "Car " << registration << " started" << std::endl;
+  }
+};
+
+class Bike : public Vehicle {
+private:
+  bool hasWeellock;
+  
+public:
+  Bike(std::string reg, bool lock) : Vehicle(reg), hasWeellock(lock) {}
+  
+  void start() override {
+    std::cout << "Bike " << registration << " started" << std::endl;
+  }
+};
+
+int main() {
+  Vehicle* v1 = new Car("ABC123", 4);
+  Vehicle* v2 = new Bike("XYZ789", true);
+  
+  v1->start();
+  v2->start();
+  
+  delete v1;
+  delete v2;
+  return 0;
+}
+```
+
+---
+
+## Key Takeaways
+✓ **OOPS makes code more modular, maintainable, and scalable**
+✓ **Real-world problems map naturally to objects and classes**
+✓ **Inheritance reduces code duplication**
+✓ **Polymorphism enables flexible and extensible designs**
+✓ **Encapsulation ensures data safety and consistency**

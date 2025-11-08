@@ -1,0 +1,58 @@
+LLD (Low-Level Design) - Core Concepts
+=======================================
+
+Three Pillars of LLD:
+1. Scalability - Handle growth in users/data
+2. Maintainability - Easy to update and fix
+3. Reusability - Modular, reusable components
+
+Definition:
+LLD = DSA + Real-World Problem Solving
+
+What LLD is NOT:
+- Tech stack selection
+- Database choice
+- Server scaling infrastructure
+- Cost optimization
+- HLD (High-Level Design) - focuses on system architecture
+
+Key Distinction:
+- HLD: System architecture and design
+- LLD: Code structure and skeleton for the application
+- DSA: The brain/foundation that powers efficient LLD solutions
+
+Example: E-commerce Product Cart
+=================================
+
+Problem: Design a shopping cart system
+
+LLD Approach:
+1. Define classes: Product, Cart, User
+2. Methods: addItem(), removeItem(), calculateTotal()
+3. Data structures: Use HashMap for O(1) lookups of products
+4. Logic: Apply discounts, validate inventory
+
+Code Skeleton:
+```
+class Product {
+  id, name, price
+}
+
+class Cart {
+  items: HashMap<productId, quantity>
+  
+  addItem(product, qty) -> add to HashMap
+  removeItem(productId) -> remove from HashMap
+  getTotal() -> iterate & sum prices
+  applyDiscount(percent) -> modify total
+}
+
+class User {
+  cart: Cart
+  checkout() -> process cart
+}
+```
+
+Here, DSA (HashMap) ensures efficient operations, and the modular design makes it reusable and maintainable.
+
+
