@@ -1,0 +1,126 @@
+1)Single Responsibility Principle (SRP)
+- Idea: A class/module should have one reason to change — one job.
+- Example: A ReportGenerator class that only formats a report. Saving to disk or sending email should be handled by separate classes (e.g., ReportSaver, EmailSender).
+
+Pseudocode:
+class ReportGenerator { generate(data) { /* format report */ } }
+class ReportSaver { save(report) { /* write file */ } }
+class EmailSender { send(report) { /* send email */ } }
+
+Code example (TypeScript):
+class ReportGenerator {
+	generate(data: any[]): string { return data.map(d => JSON.stringify(d)).join("\n"); }
+}
+class ReportSaver {
+	save(report: string) { /* fs.writeFileSync('report.txt', report) */ }
+}
+class EmailSender {
+	send(report: string) { /* smtp.send(report) */ }
+}
+// SRP: each class has one responsibility
+
+2)Open/Closed Principle (OCP)
+- Idea: Software entities should be open for extension but closed for modification.
+- Example: Instead of modifying a payment processor to add new payment methods, add new classes implementing a PaymentMethod interface.
+
+Pseudocode:
+interface PaymentMethod { pay(amount) }
+class CreditCard implements PaymentMethod { pay(a) { /* cc logic */ } }
+class Paypal implements PaymentMethod { pay(a) { /* paypal logic */ } }
+class Checkout { process(amount, PaymentMethod p) { p.pay(amount); } }
+
+Code example (TypeScript):
+interface PaymentMethod { pay(amount: number): void; }
+class CreditCard implements PaymentMethod { pay(amount: number) { console.log("CC pay", amount); } }
+class Paypal implements PaymentMethod { pay(amount: number) { console.log("PayPal pay", amount); } }
+class Checkout {
+	process(amount: number, method: PaymentMethod) { method.pay(amount); }
+}
+// OCP: add new PaymentMethod implementations without changing Checkout
+
+3)Liskov Substitution Principle (LSP)
+- Idea: Subtypes must be replaceable for their base types without breaking behavior.
+- Example: If Bird has fly(), a Penguin subclass that cannot fly violates LSP. Use a better hierarchy (e.g., FlyingBird and NonFlyingBird) or extract fly behavior.
+
+Pseudocode:
+class Bird {}
+class FlyingBird extends Bird { fly() { } }
+class Penguin extends Bird { /* no fly */ }
+
+Code example (TypeScript):
+class Bird { /* common bird behavior */ }
+class FlyingBird extends Bird { fly() { console.log("flying"); } }
+class Penguin extends Bird { swim() { console.log("swimming"); } }
+// Use separate hierarchies/interfaces so substitution doesn't break behavior
+
+4)Interface Segregation Principle (ISP)
+- Idea: Prefer many small specific interfaces rather than one big general one.
+- Example: Instead of IWorker { work(); eat(); }, split: IWorkable { work(); } and IFeedable { eat(); } so clients implement only needed methods.
+
+Pseudocode:
+interface IWorkable { work() }
+interface IFeedable { eat() }
+class Robot implements IWorkable { work() }
+class Human implements IWorkable, IFeedable { work(); eat(); }
+
+Code example (TypeScript):
+interface IWorkable { work(): void; }
+interface IFeedable { eat(): void; }
+class Robot implements IWorkable { work() { console.log("robot working"); } }
+class Human implements IWorkable, IFeedable {
+	work() { console.log("human working"); }
+	eat() { console.log("human eating"); }
+}
+// ISP: clients implement only the interfaces they need
+
+5)Dependency Inversion Principle (DIP)
+- Idea: High-level modules should not depend on low-level modules; both should depend on abstractions. Depend on interfaces, not concrete classes.
+- Example: A LoggerUser should depend on ILogger interface. Swap implementations (ConsoleLogger, FileLogger) without changing LoggerUser.
+
+Pseudocode:
+interface ILogger { log(msg) }
+class ConsoleLogger implements ILogger { log(m) { /* console */ } }
+class FileLogger implements ILogger { log(m) { /* file */ } }
+class App { constructor(ILogger logger) { this.logger = logger } }
+
+Code example (TypeScript):
+interface ILogger { log(msg: string): void; }
+class ConsoleLogger implements ILogger { log(msg: string) { console.log(msg); } }
+class FileLogger implements ILogger { log(msg: string) { /* write to file */ } }
+class App {
+	constructor(private logger: ILogger) {}
+	run() { this.logger.log("app started"); }
+}
+// DIP: App depends on ILogger abstraction, not concrete loggers
+
+Short tip: apply one principle at a time; start with SRP and then use interfaces/abstractions (ISP/DIP) to keep code flexible and testable.
+
+Definitions (concise, professional)
+- SOLID (overview)
+  SOLID is a collection of five design principles that improve maintainability, extensibility, testability, and readability of object‑oriented systems. They guide how to structure classes, interfaces, and dependencies so the system evolves with minimal risk and cost.
+
+- Single Responsibility Principle (SRP)
+  Definition: A class or module should have exactly one reason to change — it should do one thing and do it well.
+  Why used: Limits coupling and cognitive load; makes code easier to test, refactor, and reason about.
+
+- Open/Closed Principle (OCP)
+  Definition: Software entities should be open for extension but closed for modification.
+  Why used: Allows adding new behavior without altering existing, tested code — reducing regressions and enabling plug‑in style extensions.
+
+- Liskov Substitution Principle (LSP)
+  Definition: Subtypes must be substitutable for their base types without altering desirable properties of the program.
+  Why used: Ensures inheritance hierarchies are correct and prevents surprising runtime behavior when replacing implementations.
+
+- Interface Segregation Principle (ISP)
+  Definition: Prefer many small, client-specific interfaces over a single large interface.
+  Why used: Prevents classes from being forced to implement unused methods, reducing unnecessary dependencies and improving clarity.
+
+- Dependency Inversion Principle (DIP)
+  Definition: High-level modules should depend on abstractions, not concrete implementations; abstractions should not depend on details.
+  Why used: Decouples system components, enabling easy swapping of implementations (e.g., for testing or platform variation) and improving modularity.
+
+Practical benefits (one line)
+- Easier to change: isolated responsibilities and clear extension points reduce the blast radius of modifications.
+- Safer refactoring: smaller, well‑defined types and abstractions lower regression risk.
+- Better testability: dependencies passed as interfaces or constructor parameters make mocking and unit testing straightforward.
+- Clearer design: principles force explicit boundaries and contract-driven code, helping teams maintain large codebases.
