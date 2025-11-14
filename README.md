@@ -91,7 +91,8 @@ All content in this repository is **solely owned by Saikumar Pujari**. See [LICE
 
 ## Disclaimer
 
-This repository and all its contents are exclusively owned by Saikumar Pujari. Unauthorized use, reproduction, or distribution of any content is strictly prohibited.
+This repository and all its contents are exclusively owned by Saikumar . Unauthorized use, reproduction, or distribution of any content is strictly prohibited.
+Usage of this repo without any concern about the about owner may lead to reporting of the file.
 
 ---
 
