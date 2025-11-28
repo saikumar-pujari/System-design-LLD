@@ -14,14 +14,14 @@ Key Points:
 
 Common UML Diagram Types:
 1) Structural Diagrams - Show static aspects of a system(7)
-   - Class Diagram
-   - Object Diagram
+   - Class Diagram (IMP)
+   - Object Diagram (IMP)
    - Component Diagram
    - Deployment Diagram
 
 2) Behavioral Diagrams - Show dynamic aspects and interactions(7)
-   - Sequence Diagram
-   - Use Case Diagram
+   - Use Case Diagram (IMP)
+   - Sequence Diagram (IMP)
    - State Machine Diagram
    - Activity Diagram
 
@@ -174,6 +174,7 @@ Best Practices for Class Diagram in LLD:
 - Avoid cluttering - include only necessary details
 - Review and validate with stakeholders before implementation
 
+---------------------------------------------------------------------------------------------------------------------------------------
 Sequence diagram:-
 
 Definition:
@@ -249,22 +250,22 @@ Sequence Diagram Representation:
     |             |             |            |
     |--Insert---->|             |            |
     |             |--Verify---->|            |
-    |             |             |--Check--->|
-    |             |             |<--Valid---|
+    |             |             |--Check---->|
+    |             |             |<--Valid----|
     |             |<--Valid-----|            |
-    |<--PIN------|             |            |
-    |--PIN------>|             |            |
+    |<--PIN-------|             |            |
+    |--PIN------>-|             |            |
     |             |--Verify---->|            |
-    |             |             |--Check--->|
-    |             |             |<--Valid---|
+    |             |             |--Check---->|
+    |             |             |<--Valid----|
     |             |<--Valid-----|            |
-    |<-Amount----|             |            |
-    |--Amount--->|             |            |
-    |             |--Withdraw->|            |
-    |             |             |--Update->|
-    |             |             |<--Ack----|
+    |<-Amount-----|             |            |
+    |--Amount--->-|             |            |
+    |             |--Withdraw-->|            |
+    |             |             |--Update--->|
+    |             |             |<--Ack------|
     |             |<--Success---|            |
-    |<-Dispense--|             |            |
+    |<-Dispense---|             |            |
 
 Code Example (C++) - Demonstrating Sequence:
 
@@ -343,3 +344,248 @@ Sequence Diagram:
 - Shows dynamic behavior
 - How objects interact at runtime
 - Focus on execution-time view
+
+---------------------------------------------------------------------------------------------------------------------------------------
+Principle of Least Knowledge (Law of Demeter):-
+
+Definition:
+The Principle of Least Knowledge, also known as the Law of Demeter, is a design guideline that states 
+that an object should only communicate with its immediate "friends" and not with "strangers". 
+This principle promotes loose coupling between classes, making the system more maintainable and flexible.
+
+Core Rule: "Don't talk to strangers"
+
+An object's method should only call methods on:
+1) The object itself (this/self)
+2) Objects passed as parameters to the method
+3) Objects created within the method
+4) Direct component objects (has-a relationship)
+5) Global objects accessible to the object
+
+What NOT to do:
+- Avoid calling methods on objects returned by other methods
+- Avoid chaining multiple method calls (e.g., obj.getX().getY().doSomething())
+- This creates tight coupling and dependencies
+
+Bad Example (Violating the Principle):
+
+class Customer {
+public:
+    Wallet* getWallet() { return wallet; }
+private:
+    Wallet* wallet;
+};
+
+class Wallet {
+public:
+    float getMoney() { return money; }
+    void setMoney(float m) { money = m; }
+private:
+    float money;
+};
+
+class ShoppingCart {
+public:
+    void checkout(Customer* customer, float amount) {
+        // BAD: Reaching through customer to wallet to money
+        // This violates the principle - we're talking to "strangers"
+        Wallet* wallet = customer->getWallet();
+        float money = wallet->getMoney();
+        
+        if (money >= amount) {
+            wallet->setMoney(money - amount);
+            cout << "Payment successful" << endl;
+        }
+    }
+};
+
+Problems with the bad example:
+- ShoppingCart knows too much about Customer's internal structure
+- ShoppingCart depends on both Customer AND Wallet classes
+- If Wallet implementation changes, ShoppingCart breaks
+- Tight coupling between multiple classes
+- Hard to test and maintain
+
+Good Example (Following the Principle):
+
+class Customer {
+private:
+    Wallet* wallet;
+    
+public:
+    // Customer handles its own wallet operations
+    bool makePayment(float amount) {
+        if (wallet->getMoney() >= amount) {
+            wallet->deductMoney(amount);
+            return true;
+        }
+        return false;
+    }
+};
+
+class Wallet {
+private:
+    float money;
+    
+public:
+    float getMoney() { return money; }
+    
+    void deductMoney(float amount) {
+        money -= amount;
+    }
+};
+
+class ShoppingCart {
+public:
+    void checkout(Customer* customer, float amount) {
+        // GOOD: Only talking to the direct object (customer)
+        // Customer handles its own internal details
+        if (customer->makePayment(amount)) {
+            cout << "Payment successful" << endl;
+        } else {
+            cout << "Insufficient funds" << endl;
+        }
+    }
+};
+
+Benefits of the good example:
+- ShoppingCart only knows about Customer, not Wallet
+- Loose coupling - changes to Wallet don't affect ShoppingCart
+- Customer encapsulates its own behavior
+- Easier to test each class independently
+- More maintainable and flexible design
+
+Real-World Example: Booking System
+
+Bad Design (Violating):
+
+class User {
+public:
+    Address* getAddress() { return address; }
+private:
+    Address* address;
+};
+
+class Address {
+public:
+    string getCity() { return city; }
+private:
+    string city;
+};
+
+class BookingService {
+public:
+    void createBooking(User* user) {
+        // BAD: Method chaining through multiple objects
+        string city = user->getAddress()->getCity();
+        cout << "Booking in: " << city << endl;
+    }
+};
+
+Good Design (Following):
+
+class User {
+private:
+    Address* address;
+    
+public:
+    // User provides what others need without exposing internals
+    string getCity() {
+        return address->getCity();
+    }
+};
+
+class Address {
+private:
+    string city;
+    
+public:
+    string getCity() { return city; }
+};
+
+class BookingService {
+public:
+    void createBooking(User* user) {
+        // GOOD: Only calling method on immediate object
+        string city = user->getCity();
+        cout << "Booking in: " << city << endl;
+    }
+};
+
+Key Advantages:
+
+1) Reduced Coupling:
+   - Classes depend on fewer other classes
+   - Changes propagate less through the system
+
+2) Better Encapsulation:
+   - Internal structure is hidden
+   - Implementation details are protected
+
+3) Improved Maintainability:
+   - Easier to modify individual classes
+   - Less risk of breaking other parts
+
+4) Enhanced Testability:
+   - Classes can be tested in isolation
+   - Fewer dependencies to mock
+
+5) Increased Flexibility:
+   - Easier to refactor and extend
+   - Components can be replaced independently
+
+Common Violations to Avoid:
+
+1) Method Chaining:
+   Bad: object.getA().getB().getC().doSomething()
+   
+2) Exposing Internal Objects:
+   Bad: Returning internal objects that expose structure
+   
+3) Deep Navigation:
+   Bad: Navigating through multiple layers of objects
+
+Guidelines for Implementation:
+
+1) Use Tell, Don't Ask:
+   - Tell objects what to do instead of asking for their state
+   - Let objects make decisions about their own data
+
+2) Provide Facade Methods:
+   - Create wrapper methods that hide internal structure
+   - Return only necessary information
+
+3) Delegate Responsibilities:
+   - Push behavior to the object that owns the data
+   - Avoid reaching into other objects
+
+4) Limit Method Parameters:
+   - Pass only what's necessary
+   - Avoid passing complex objects when simple values suffice
+
+When to Break the Rule:
+
+While the Principle of Least Knowledge is valuable, there are cases where strict adherence may not be practical:
+
+1) Data Transfer Objects (DTOs):
+   - Simple data containers may expose their properties directly
+
+2) Fluent Interfaces:
+   - Builder patterns often use method chaining intentionally
+
+3) Framework Requirements:
+   - Some frameworks may require specific access patterns
+
+4) Performance Concerns:
+   - Excessive wrapping may add unnecessary overhead in critical paths
+
+Summary:
+The Principle of Least Knowledge promotes:
+- Talking only to immediate friends
+- Reducing dependencies between classes
+- Better encapsulation and information hiding
+- More maintainable and flexible code
+- "Tell, Don't Ask" philosophy
+
+Remember: Each class should have limited knowledge about other classes and only interact with 
+its closest collaborators. This creates a more robust and adaptable system design.

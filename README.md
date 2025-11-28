@@ -33,6 +33,14 @@ system-design-lld/
 
 ---
 
+## Brief Overview
+
+This repository provides a hands-on approach to system design and low-level design (LLD) concepts, including practical implementations, OOP principles, and visual diagrams. It is ideal for learners and professionals looking to strengthen their understanding of scalable system architecture and design patterns.
+
+**Extra features and content are being added one by one!**
+
+---
+
 ## Getting Started
 
 ### Prerequisites   (#optional)

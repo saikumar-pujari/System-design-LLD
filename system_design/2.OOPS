@@ -337,6 +337,16 @@ int main() {
   return 0;
 }
 ```
+from here we are talking about the UML Diagram: which can be found in next txt file
+A A C I D R
+Always Ask Cute Intelligent Dogs Relation 🤣
+Relationships:-
+  Association → JUST CONNECTED
+  Aggregation → HAS-A (but independent)
+  Composition → HAS-A (but dependent)
+  Inheritance → IS-A
+  Dependency → USES
+  Realization → IMPLEMENTS
 
 ---
 
@@ -427,6 +437,7 @@ public:
 
 ### 7. Abstract Classes & Interfaces
 **Definition:** Classes that cannot be instantiated; enforce derived classes to implement specific methods.
+An abstract class is a class that cannot be instantiated and contains incomplete (abstract) methods that must be implemented by subclasses.
 
 ```cpp
 // Abstract class with pure virtual functions

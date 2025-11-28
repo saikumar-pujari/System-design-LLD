@@ -1,0 +1,339 @@
+DNS (Domain Name System) - How It Works
+
+Image: ./system_deisgn/cache_diagram.png
+
+1. WHAT IS DNS?
+   - DNS is like the phonebook of the internet
+   - Translates human-readable domain names (google.com) to IP addresses (172.217.164.110)
+   - Without DNS, we'd have to remember IP addresses for every website
+
+2. DNS HIERARCHY:
+   - Root DNS Servers (.)
+   - Top-Level Domain (TLD) Servers (.com, .org, .net, etc.)
+   - Authoritative Name Servers (specific domain servers)
+   - Local DNS Resolver (usually your ISP)
+
+3. HOW DNS RESOLUTION WORKS (Step-by-Step):
+   
+   Step 1: User types "www.example.com" in browser
+   
+   Step 2: Browser checks local cache
+   - If found, uses cached IP address
+   - If not, proceeds to Step 3
+   
+   Step 3: Query sent to Recursive Resolver (ISP's DNS server)
+   - Checks its own cache first
+   
+   Step 4: Resolver queries Root Name Server
+   - Root server responds with TLD server address (.com server)
+   
+   Step 5: Resolver queries TLD Name Server
+   - TLD server responds with Authoritative Name Server for example.com
+   
+   Step 6: Resolver queries Authoritative Name Server
+   - Returns the actual IP address of www.example.com
+   
+   Step 7: Resolver returns IP to browser
+   - IP address is cached for future use
+   
+   Step 8: Browser connects to the IP address
+
+4. DNS RECORD TYPES:
+   - A Record: Maps domain to IPv4 address
+   - AAAA Record: Maps domain to IPv6 address
+   - CNAME: Canonical name (alias for another domain)
+   - MX Record: Mail exchange servers
+   - NS Record: Name server records
+   - TXT Record: Text information (SPF, verification, etc.)
+   - SOA Record: Start of Authority (admin info)
+
+5. DNS CACHING:
+   - Browser Cache: Short-term (few minutes)
+   - OS Cache: System-level cache
+   - Resolver Cache: ISP cache (minutes to hours)
+   - TTL (Time To Live): Determines cache duration
+
+6. DNS SECURITY:
+   - DNSSEC: Adds digital signatures to prevent tampering
+   - DNS over HTTPS (DoH): Encrypts DNS queries
+   - DNS over TLS (DoT): Encrypted DNS with TLS protocol
+
+7. COMMON DNS ISSUES:
+   - DNS Propagation Delay: Changes take time (up to 48 hours)
+   - DNS Poisoning/Spoofing: Malicious cache poisoning
+   - DNS Server Failures: Redundancy with multiple servers
+   - Wrong DNS Configuration: Typos or incorrect records
+
+8. PERFORMANCE OPTIMIZATION:
+   - Use multiple DNS servers (primary & secondary)
+   - Implement proper TTL values
+   - Use CDN with Anycast DNS
+   - Geographic DNS routing for faster responses
+
+================================================================================
+
+APIs & RESTful API - System Design Knowledge
+
+1. WHAT IS AN API?
+   - Application Programming Interface
+   - Contract/Interface between different software systems
+   - Allows applications to communicate with each other
+   - Abstracts complexity and exposes only necessary functionality
+
+2. API TYPES:
+   - REST (Representational State Transfer)
+   - SOAP (Simple Object Access Protocol)
+   - GraphQL (Query Language for APIs)
+   - gRPC (Google Remote Procedure Call)
+   - WebSocket APIs (Real-time bidirectional)
+   - Webhook APIs (Event-driven callbacks)
+
+3. REST API FUNDAMENTALS:
+
+   A. REST PRINCIPLES (6 Constraints):
+      1. Client-Server Architecture: Separation of concerns
+      2. Stateless: Each request contains all necessary information
+      3. Cacheable: Responses must define if cacheable or not
+      4. Uniform Interface: Consistent way to interact with resources
+      5. Layered System: Client doesn't know if connected to end server
+      6. Code on Demand (Optional): Server can send executable code
+
+   B. HTTP METHODS (CRUD Operations):
+      - GET: Retrieve/Read resource (Idempotent, Safe)
+      - POST: Create new resource (Not Idempotent)
+      - PUT: Update/Replace entire resource (Idempotent)
+      - PATCH: Partial update of resource (Not necessarily Idempotent)
+      - DELETE: Remove resource (Idempotent)
+      - HEAD: Get headers only (like GET without body)
+      - OPTIONS: Get allowed methods for resource
+
+   C. HTTP STATUS CODES:
+      1xx - Informational:
+         - 100 Continue
+      
+      2xx - Success:
+         - 200 OK (General success)
+         - 201 Created (POST success)
+         - 204 No Content (Success but no response body)
+      
+      3xx - Redirection:
+         - 301 Moved Permanently
+         - 302 Found (Temporary redirect)
+         - 304 Not Modified (Cache valid)
+      
+      4xx - Client Errors:
+         - 400 Bad Request (Invalid syntax)
+         - 401 Unauthorized (Authentication required)
+         - 403 Forbidden (No permission)
+         - 404 Not Found (Resource doesn't exist)
+         - 409 Conflict (State conflict)
+         - 422 Unprocessable Entity (Validation error)
+         - 429 Too Many Requests (Rate limit)
+      
+      5xx - Server Errors:
+         - 500 Internal Server Error
+         - 502 Bad Gateway
+         - 503 Service Unavailable
+         - 504 Gateway Timeout
+
+4. REST API DESIGN BEST PRACTICES:
+
+   A. URL STRUCTURE:
+      ✓ Good:
+         - /users (collection)
+         - /users/{id} (specific resource)
+         - /users/{id}/orders (nested resource)
+         - /users/{id}/orders/{orderId}
+      
+      ✗ Bad:
+         - /getUsers (verbs in URL)
+         - /users/delete/123
+         - /user-orders (inconsistent naming)
+
+   B. NAMING CONVENTIONS:
+      - Use nouns, not verbs (resource-oriented)
+      - Use plural nouns for collections (/users, not /user)
+      - Use kebab-case for URLs (/order-items)
+      - Use lowercase letters
+      - Keep URLs simple and intuitive
+
+   C. VERSIONING:
+      - URI Versioning: /api/v1/users
+      - Header Versioning: Accept: application/vnd.api.v1+json
+      - Query Parameter: /api/users?version=1
+      - Choose one strategy and be consistent
+
+   D. FILTERING, SORTING, PAGINATION:
+      - Filtering: /users?status=active&role=admin
+      - Sorting: /users?sort=created_at&order=desc
+      - Pagination: /users?page=2&limit=50
+      - Cursor-based: /users?cursor=xyz&limit=50
+
+5. REQUEST & RESPONSE STRUCTURE:
+
+   A. REQUEST HEADERS:
+      - Content-Type: application/json
+      - Accept: application/json
+      - Authorization: Bearer <token>
+      - X-API-Key: <api-key>
+      - User-Agent: Client information
+
+   B. RESPONSE FORMAT (JSON):
+      {
+        "status": "success",
+        "data": {
+          "id": 123,
+          "name": "John Doe",
+          "email": "john@example.com"
+        },
+        "metadata": {
+          "timestamp": "2024-01-15T10:30:00Z",
+          "version": "1.0"
+        }
+      }
+
+   C. ERROR RESPONSE FORMAT:
+      {
+        "status": "error",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Invalid email format",
+          "details": [
+            {
+              "field": "email",
+              "issue": "Must be valid email address"
+            }
+          ]
+        },
+        "timestamp": "2024-01-15T10:30:00Z"
+      }
+
+6. API AUTHENTICATION & AUTHORIZATION:
+
+   A. AUTHENTICATION METHODS:
+      - Basic Auth: Base64 encoded username:password
+      - API Keys: Simple key in header/query
+      - OAuth 2.0: Token-based authorization framework
+      - JWT (JSON Web Tokens): Stateless token authentication
+      - Session-based: Cookie-based sessions
+
+   B. JWT STRUCTURE:
+      - Header: Algorithm & token type
+      - Payload: Claims (user data)
+      - Signature: Verification signature
+      Format: header.payload.signature
+
+   C. OAUTH 2.0 FLOWS:
+      - Authorization Code: Web apps
+      - Implicit: Single-page apps (deprecated)
+      - Client Credentials: Service-to-service
+      - Resource Owner Password: Legacy (not recommended)
+
+7. API SECURITY BEST PRACTICES:
+
+   - Use HTTPS/TLS for all endpoints
+   - Implement rate limiting (prevent abuse)
+   - Input validation and sanitization
+   - Use authentication and authorization
+   - Implement CORS properly
+   - API key rotation
+   - SQL injection prevention
+   - XSS and CSRF protection
+   - Don't expose sensitive data in URLs
+   - Log and monitor API usage
+
+8. RATE LIMITING:
+
+   A. STRATEGIES:
+      - Fixed Window: 1000 requests per hour
+      - Sliding Window: More accurate tracking
+      - Token Bucket: Burst handling
+      - Leaky Bucket: Smooth rate
+
+   B. RESPONSE HEADERS:
+      - X-RateLimit-Limit: 1000
+      - X-RateLimit-Remaining: 500
+      - X-RateLimit-Reset: 1640000000
+      - Retry-After: 3600 (when rate limited)
+
+9. API PERFORMANCE OPTIMIZATION:
+
+   - Implement caching (Redis, Memcached)
+   - Use CDN for static content
+   - Compression (gzip, brotli)
+   - Database query optimization
+   - Connection pooling
+   - Asynchronous processing
+   - Load balancing
+   - API Gateway pattern
+   - Pagination for large datasets
+   - Partial responses (field filtering)
+
+10. API DOCUMENTATION:
+
+    - OpenAPI/Swagger specification
+    - Clear endpoint descriptions
+    - Request/response examples
+    - Authentication instructions
+    - Error code documentation
+    - Rate limit information
+    - Changelog/versioning info
+    - Code samples in multiple languages
+
+11. REST VS OTHER API STYLES:
+
+    REST:
+    ✓ Simple, widely adopted
+    ✓ Cacheable
+    ✓ Stateless
+    ✗ Over-fetching/Under-fetching
+    ✗ Multiple round trips
+
+    GraphQL:
+    ✓ Single endpoint
+    ✓ Request exactly what you need
+    ✓ Strongly typed
+    ✗ More complex
+    ✗ Caching harder
+
+    gRPC:
+    ✓ High performance (binary)
+    ✓ Bi-directional streaming
+    ✓ Strong typing (Protobuf)
+    ✗ Less human-readable
+    ✗ Limited browser support
+
+12. API SCALABILITY PATTERNS:
+
+    - API Gateway: Single entry point
+    - Load Balancer: Distribute traffic
+    - Circuit Breaker: Prevent cascade failures
+    - Retry Logic: Handle transient failures
+    - Timeout Settings: Prevent hanging
+    - Bulkhead Pattern: Isolate resources
+    - Throttling: Control request rate
+    - Caching Layer: Reduce backend load
+
+13. MONITORING & OBSERVABILITY:
+
+    - Response time metrics
+    - Error rates by endpoint
+    - Request volume tracking
+    - Success/failure ratios
+    - Latency percentiles (p50, p95, p99)
+    - Distributed tracing
+    - API health checks
+    - Alerting on anomalies
+
+14. COMMON API DESIGN MISTAKES TO AVOID:
+
+    ✗ Not using HTTP methods correctly
+    ✗ Ignoring HTTP status codes
+    ✗ Breaking changes without versioning
+    ✗ Inconsistent naming conventions
+    ✗ No pagination on large datasets
+    ✗ Exposing internal implementation
+    ✗ Poor error messages
+    ✗ No rate limiting
+    ✗ Inadequate security
+    ✗ Missing API documentation

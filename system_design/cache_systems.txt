@@ -1,0 +1,157 @@
+Caching systems overview
+
+Goal
+- Reduce latency, offload upstream systems, cut cost, and increase throughput by serving repeated data faster than the source of truth.
+
+Core concepts
+- Hit: Request served from cache.
+- Miss: Request fetched from origin and optionally stored.
+- TTL (time-to-live): How long an entry is valid.
+- Invalidation: Removing or changing stale entries.
+- Consistency: How closely cached data matches origin (strong vs eventual).
+- Eviction: Policy to free space (LRU, LFU, FIFO, size-based, TTL expiration).
+- Warmup/prime: Preload hot keys to avoid cold start.
+- Stampede protection: Prevent thundering herd on miss (locks, request coalescing, stale-while-revalidate).
+
+Where caching is used (client to backend)
+1) CPU and OS-level caches
+	 - CPU L1/L2/L3 caches: Hardware-level, transparent, optimize instruction/data access.
+	 - Disk page cache: OS caches file blocks in memory to reduce disk I/O.
+
+2) Client-side application cache
+	 - Mobile/desktop apps: Store recent API responses in memory or local storage.
+	 - Example: A news app caches the last feed JSON for fast reopen; TTL = 5 minutes.
+
+3) Browser caches
+	 - HTTP cache: Controlled via Cache-Control, ETag, Last-Modified, Vary.
+	 - Example headers:
+		 - Cache-Control: public, max-age=3600
+		 - ETag: "v123" (conditional GET with If-None-Match)
+		 - Stale-While-Revalidate: 60 (serve stale for 60s while async revalidate)
+	 - Service Worker cache: App-controlled caching strategies for PWAs (cache-first, network-first, stale-while-revalidate).
+
+4) DNS cache
+	 - OS and resolvers cache DNS answers (A/AAAA/CNAME) by TTL to reduce lookups.
+
+5) CDN (Content Delivery Network) cache
+	 - Edge POPs cache static assets (images, CSS, JS), sometimes dynamic pages.
+	 - Keying often includes host + path + query + headers defined by Vary.
+	 - Example: Cache-Control: public, s-maxage=86400 for CDN; max-age for browsers.
+	 - Invalidation: Purge by URL, prefix, or tag; or versioning via file names (app.v123.js).
+	 - Advanced: Edge compute can personalize while still caching (key segment by user groups).
+
+6) Reverse proxy cache
+	 - Nginx/Varnish sitting before app servers cache HTTP responses.
+	 - Good for HTML pages, API GETs, generated images.
+	 - Example config concept: cache key = method+uri+headers; TTL via Cache-Control; bypass for authenticated requests.
+
+7) Application-layer caches
+	 - In-memory per-process cache: Language-level (Java Caffeine/Guava, Go map+LRU, Python functools.lru_cache), fastest but not shared across instances.
+	 - Distributed cache: Shared across instances (Redis, Memcached). Useful for session data, computed results, feature flags, rate-limit tokens.
+	 - Local + distributed hybrid: Two-tier cache (local LRU with short TTL, backing Redis with longer TTL).
+
+8) Database and storage caches
+	 - Database buffer cache: RDBMS caches pages/blocks in RAM.
+	 - Query result cache: Some databases cache statement results (MySQL Query Cache deprecated; Postgres relies on prepared statements and OS cache; cloud DBs add result caches).
+	 - Object store/read-through cache: S3 fronted by Redis for hot objects.
+
+9) Application-specific caches
+	 - Fragment caching: Cache partial page components (e.g., sidebar counts).
+	 - Template/view caching: Cache rendered HTML for route+params.
+	 - Computation cache: Memoize expensive functions (e.g., personalization scores).
+	 - Write-heavy domain caches: Secondary indexes and materialized views precomputed in Redis.
+
+Caching strategies
+- Cache-aside (lazy loading)
+	- App checks cache; on miss, load from origin, write to cache, return.
+	- Pros: Simple, control per key. Cons: Potential stampede, stale if not invalidated.
+- Read-through
+	- Cache itself knows how to load missing data from origin.
+	- Pros: Centralized logic; Cons: Ties cache to origin.
+- Write-through
+	- On write, synchronously update cache and origin.
+	- Pros: Cache stays warm and consistent; Cons: Write latency increases.
+- Write-back (write-behind)
+	- Write to cache; asynchronously flush to origin.
+	- Pros: Fast writes, batchable; Cons: Risk of loss on crash, needs durability.
+- Refresh-ahead
+	- Proactively refresh keys about to expire to keep hot set warm.
+- Stale-while-revalidate
+	- Serve stale content for a short window while revalidating in background.
+
+Key design points
+- Choosing cache keys: Include only dimensions that affect response (path, query, headers like Accept-Language; avoid user identifiers unless necessary).
+- TTL selection: Balance freshness vs hit rate; use different TTLs for static assets (days) vs dynamic data (seconds/minutes).
+- Invalidation methods: TTL expiry, explicit delete, versioned keys, event-driven (publish-subscribe on data changes).
+- Eviction policy: LRU for recency, LFU for frequency, size-aware for large objects; set max memory and item size.
+- Consistency: Strong requires synchronous invalidation; eventual is fine for non-critical UI. For money/stock, prefer read-through+write-through or bypass cache.
+- Serialization: Choose compact formats (MessagePack, Protobuf) for speed; compress large values.
+- Sharding: Hash keys across nodes; use consistent hashing to minimize churn when scaling.
+- Replication: For HA and read scaling; beware replication lag for caches that act as source of truth.
+- Persistence: Redis AOF/RDB if cache must survive restarts; Memcached is typically ephemeral.
+- Security: Don’t cache PII in public caches; key by auth state; use private, no-store for sensitive responses.
+
+Operational concerns
+- Monitoring: Hit/miss rate, latency, evictions, memory usage, keyspace growth, errors.
+- Capacity planning: Estimate working set, object sizes, QPS; simulate with traces.
+- Backpressure: On miss spikes, degrade gracefully (serve partial, reduce TTL, shed load).
+- Dogpile prevention: Single-flight/locks; request coalescing; jitter TTLs; token bucket for rebuilders.
+- Cache warming: Warm top N keys on deploy or after incident; can use canaries.
+
+Examples
+- Browser + CDN + origin
+	- Static assets: app.css, app.js
+		- Build with hashed filenames (app.9f3c1.js) so CDN can cache indefinitely (s-maxage=31536000). On deploy, new filename invalidates old automatically.
+	- HTML and API GET responses:
+		- Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=60
+		- CDN caches for 5 minutes; browser for 1 minute; during revalidate allow 60s stale.
+
+- Reverse proxy cache for anonymous pages
+	- Nginx/Varnish caches GET /product/:id for anonymous users; key includes Accept-Language.
+	- Invalidate when product changes via webhook to purge /product/:id.
+
+- Application two-tier cache
+	- Local LRU (5s TTL) + Redis (60s TTL).
+	- On lookup: check local; else check Redis; else fetch DB, store in Redis, return; local layer remains warm for hot keys.
+
+- Write-through for pricing
+	- On price update: write DB, then immediately set Redis key with new value and version. Readers see new value instantly.
+
+- Stale-while-revalidate for news feed
+	- Serve cached feed if <= 120s old; trigger background refresh; users get fast response and eventual freshness.
+
+Pitfalls
+- Caching authenticated or personalized responses without keying properly can leak data.
+- Overly long TTLs cause stale UI; overly short TTLs reduce hit rate and increase origin load.
+- Forgetting invalidation on writes leads to inconsistency.
+- Unbounded item sizes can evict many small hot keys (use size caps).
+- Dogpile during outages; use request coalescing and circuit breakers.
+
+Quick selection guide
+- Static assets: CDN + long TTL + versioned filenames.
+- Anonymous HTML/API GET: CDN or reverse proxy with short TTL + SWR.
+- Personalized responses: Short TTL or no cache; consider edge compute with segmented keys.
+- Expensive computations: Cache-aside with stampede protection; tune TTL by cost.
+- Frequently written data (money, inventory): Prefer read-through + write-through; or bypass cache.
+
+Common tools
+- Redis: In-memory data store with TTL, data structures, Lua scripting, persistence; supports replication and clustering.
+- Memcached: Simple key-value, very fast, no persistence, slab allocator; great for ephemeral caching.
+- Varnish: HTTP reverse proxy cache with VCL for policy.
+- Nginx/Envoy: Reverse proxies with caching modules and controls.
+- CDNs: Cloudflare, Akamai, Fastly, AWS CloudFront; edge caching and compute.
+- Client libraries: Caffeine (Java), Guava Cache (Java), Ristretto (Go), functools.lru_cache (Python).
+
+Testing and validation
+- Define cacheability rules and headers in integration tests.
+- Simulate cache miss storms; verify coalescing.
+- Track hit rate per route/key; adjust TTLs and keys iteratively.
+
+==============================================================================================
+cloud native: introducted by netflix in 2013
+for a application to be clooud native it should conatin 4 features:
+    1)microservies
+    2)conatiners(kubernets)
+    3)Devops(CI/CD)
+    4)open service
+    Image: ./system_design/cloud_native.png
