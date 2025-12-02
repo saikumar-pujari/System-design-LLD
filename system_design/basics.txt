@@ -337,3 +337,22 @@ APIs & RESTful API - System Design Knowledge
     ✗ No rate limiting
     ✗ Inadequate security
     ✗ Missing API documentation
+
+Standard Json Format:
+   {
+      "success": true,
+      "message": "User fetched successfully",
+      "data": {
+         "id": 10,
+         "name": "Sai",
+         "email": "sai@example.com"
+               }
+   }
+
+Error Json Format:
+   {
+      "success": false,
+      "message": "User not found",
+      "statusCode": 404
+   }
+
