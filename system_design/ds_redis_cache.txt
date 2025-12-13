@@ -1,0 +1,53 @@
+in memory data structure used for DB,messgae broker and stream engine mostly used in linux and ansi c is written
+mostly used by windows only -->cache.PORT-6973
+    codes:-
+        sudo apt update
+        sudo apt install redis
+        sudo systemmctl status redis
+        sudo systemmctl enable redis
+        sudo systemmctl start redis
+        sudo systemmctl stop redis
+        sudo systemmctl restart redis
+        sudo systemmctl restart redis-server
+        sudo systemmctl restart redis.service
+        redis-cli --version
+        
+        redis-server
+        redis-cli
+        redis-cli -h host -p port -a password
+
+        its server works in background and listen for the client connections mainly used for storing and managedign the data in memory.
+        redis-cli(command line interface)--used for writing command
+        redlisinsight used the redis-cli as GUI
+
+        config get *
+
+        string naming:-
+            <entity>:<id> value
+            id. name
+            1   sai         -->set user:1 sai
+            2   sony        -->set user:2 sony  
+            3   radhika     -->set user:3 radhika
+        (setnx only creates when the values are not present in the server)
+
+        set user:1 sai (auto creates the string and if exists it will update the value)
+        setnx user:2 nikhil (first checks the string if not exists it will create and if exists it will noot create)
+        mget used for multiple get from ths data(mget user:1 user:2 user:3)
+        mset used for multiple sets for the data(mset user:4 nikhil user:5 radha user:6 vaishu)
+        incremsnt and decrement--> set count 0; incr count 10(no of incrments defualt is 1)
+        for TTL use set expire user:1 10(time in sec)->means the user:1 will expire in 10sec
+
+        list-->used mainly for stacks and queues
+        lpush add the value to the left side of the queues and rpush on right side
+        lpop and rpop removes the value at the index at lpop or rpop
+        blpop and brpop
+        to read a list lrange topics start and end
+
+        key user:* returns all the user 
+        del user:* delets everything in user
+
+        sets:-
+        sadd,srem,sismember     
+
+        similary we have hash and zset values to add and get their!
+

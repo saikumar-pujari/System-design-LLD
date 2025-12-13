@@ -1,0 +1,17 @@
+
+
+we can create our own tags without any problem and can also use tags from html as h1,title,footer ets..
+<parent>
+    <child>
+        <subchild>
+        </subchild>
+    </child>
+</parent>
+
+
+<note>
+  <to>Tove</to>
+  <from>Jani</from>
+  <heading>Reminder</heading>
+  <body>Don't forget me this weekend!</body>
+</note>
