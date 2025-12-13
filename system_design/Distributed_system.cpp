@@ -114,7 +114,7 @@ To customers → It looks like ONE Domino's brand, but it's actually a distribut
 - ✅ No distributed complexity
 
 **Cons:**
-- ❌ Hardware limits (you can't infinitely upgrade)
+- ❌ Hardware limits (you can't' infinitely upgrade)
 - ❌ Expensive beyond a point
 - ❌ Single point of failure
 
@@ -149,7 +149,7 @@ To customers → It looks like ONE Domino's brand, but it's actually a distribut
 | Pattern | Description | Use Case |
 |---------|-------------|----------|
 | **Partitioning** | Split data across multiple databases | Large user base |
-| **HTTPS Caching** | Store responses to avoid recomputation | Static content |
+| **HTTPS Caching** | Store responses to avoid recomputation | Static content |(reverse proxy,CDN)
 | **RDBMS Sharding** | Divide relational database into chunks | High write loads |
 | **NoSQL** | Use non-relational databases for flexibility | Unstructured data |
 | **Distributed Caching** | Share cache across servers | Session storage |
@@ -1016,6 +1016,21 @@ Future requests → Cache HIT (fast)
 
 **Example:** Netflix uses CDN to serve 200+ million subscribers globally with minimal buffering.
 
+IMPORTANT--
+    In our architecture, all caching layers are accessed in the following order:
+    CDN → Proxy Server (forward/reverse proxy) → Load Balancer → External Cache (Redis) → Database Cache → Database.
+
+    Redis acts as the primary external cache and refreshes data based on TTL. However, if all keys expire at the same time, Redis would attempt to regenerate everything simultaneously, which can overload the system.
+
+    To prevent this “cache stampede,” we use a locking mechanism so that only one request refreshes the expired data while the rest wait or serve stale content. This avoids system crashes.
+
+    Whenever there is a cache miss, the system normally falls back to the database — which is expensive because each lookup requires multiple network hops (e.g., 10 ms to Redis and 30 ms to DB for both request and response cycles).
+    To optimize this, we maintain a lightweight bit-array (0s and 1s) between the cache and the database:
+
+    1 → the record definitely exists in the DB, so go fetch it.
+    0 → the record does not exist, so instantly return “Not Found” without hitting the DB.
+    This drastically reduces unnecessary database lookups and improves latency under heavy load.
+    
 ---
 
 ## 8. Databases in Distributed Systems
@@ -1122,9 +1137,9 @@ Value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
 **Example:**
 ```
-(Priya)-[FRIENDS_WITH]->(Raj)
-(Raj)-[LIKES]->(Pizza)
-(Priya)-[LIKES]->(Pizza)
+// (Priya)-[FRIENDS_WITH]->(Raj)
+// (Raj)-[LIKES]->(Pizza)
+// (Priya)-[LIKES]->(Pizza)
 
 Query: "Find friends who like the same food"
 ```
@@ -1506,7 +1521,7 @@ All nodes are equal, replicate to each other
 When you send a WhatsApp message:
 
 1. **Sent** ✓ (your device has it)
-2. **Delivered** ✓✓ (recipient's device received it)
+2. **Delivered** ✓✓ (recipient's' device received it)
 3. **Read** ✓✓ (blue ticks - recipient saw it)
 
 Updates arrive gradually → This is **eventual consistency**
@@ -1730,6 +1745,9 @@ Write with consistency level:
 
 **Key Concept:** Decouples producers from consumers.
 
+Service A → sends message → Service B receives it(only communication no works as, it does it from sender to reviver no work)
+
+
 ---
 
 ### Post Office Analogy
@@ -1803,7 +1821,7 @@ You write letter → Drop in mailbox → Post office holds it → Delivers when 
 Every 10 seconds:
 1. Notifier sends heartbeat to all servers
 2. Servers respond with health status
-3. If server doesn't respond → Mark as dead
+3. If server doesn't' respond → Mark as dead
 4. Check database: Was work completed?
 5. If not completed → Re-queue task
 6. Load balancer assigns to healthy server
@@ -1883,7 +1901,15 @@ User places order:
 
 Each service independent, scalable, reliable!
 ```
+Task queues:-
+    App → sends task → Celery worker executes it(Ask someone to DO something.)
+    when ever a user makes a request the task queue handles it in background to return a result
+    eg:->when a user orders a pizza(message queue) then the cheif prepares the pizza(task queues)
+        2)write a email(task queue will do it in background)
 
+    Tools:-> celery(django),RQ
+    celery works->
+    user->application(request bank statements)->taskqueue(redis,kafka)<-->celery(performs the task in lifo and return it to the DB as request in background)
 ---
 
 ## 14. Event-Driven Architecture
@@ -1909,7 +1935,7 @@ Imagine a school bell 🔔 rings at 3 PM.
 - Canteen: Starts preparing snacks
 - Security: Manages exit traffic
 
-**Important:** The bell didn't tell each person what to do. It simply announced an event. Everyone decided their own response.
+**Important:** The bell didn't' tell each person what to do. It simply announced an event. Everyone decided their own response.
 
 **This is Event-Driven Architecture!**
 
@@ -2258,7 +2284,7 @@ Same restaurant, different approach:
 - ✅ Independent scaling (scale what you need)
 - ✅ Technology flexibility (different languages per service)
 - ✅ Faster deployments (deploy one service)
-- ✅ Fault isolation (one service down doesn't crash all)
+- ✅ Fault isolation (one service down doesn't' crash all)
 - ✅ Team autonomy
 
 **Cons:**
