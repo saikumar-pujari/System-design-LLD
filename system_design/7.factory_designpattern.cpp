@@ -202,6 +202,13 @@ public:
 
 // Client Code
 int main() {
+
+    // auto bike = VehicleFactory::createVehicle("Bike");
+    // see man this a typical example for the code ok! here the clinet will request the factory
+    //clinets wants a bike-->bike* xyz(name) which is bike* b
+    //factory is vehinclefactory::createvehicle('bike') here the factory will createvehicle of bike as requested
+    //factory will revice the request as burgerfactory::createburger('type') here the type is any inout of burger
+
     cout << "=== Factory Design Pattern Demo ===" << endl << endl;
     
     // Create different vehicles using factory

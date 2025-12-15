@@ -589,3 +589,30 @@ The Principle of Least Knowledge promotes:
 
 Remember: Each class should have limited knowledge about other classes and only interact with 
 its closest collaborators. This creates a more robust and adaptable system design.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+class diagram-->object diagram-->sequence diagram(multiple objects)
+
+in activity diagram its just about the activity of a user man from start to end like a flow diagram/form means doing multiple work in  the background man!
+
+            start
+              |
+            insert Card
+              |
+            Enter pin
+              |
+              Check------------------------->
+              |                             |
+              valid is true                 |
+              |                             |
+              enter amount                  |
+              |                             |
+   (fork)================                   |
+    withdraw message Notification           |
+        \      |         /                  |
+         \     |        /                   |
+        ===================                 |
+                |                           |
+            take card out man<--------------|
+                 |
+                 exit
